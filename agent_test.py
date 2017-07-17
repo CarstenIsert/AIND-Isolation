@@ -15,10 +15,14 @@ class IsolationTest(unittest.TestCase):
     """Unit tests for isolation agents"""
 
     def setUp(self):
+        print("Setup")
         reload(game_agent)
-        self.player1 = "Player1"
+        self.player1 = game_agent.MinimaxPlayer
         self.player2 = "Player2"
         self.game = isolation.Board(self.player1, self.player2)
+
+    def testTerminalState(self):
+        self.assertEqual(self.player1.max_value(self, self.game, 0), 6)
 
 
 if __name__ == '__main__':
