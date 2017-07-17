@@ -70,7 +70,8 @@ def custom_score_2(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    return float(len(game.get_legal_moves(player)))
+    legal_moves = game.get_legal_moves(player)
+    return float(len(legal_moves))
 
 
 def custom_score_3(game, player):
