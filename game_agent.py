@@ -193,17 +193,13 @@ class MinimaxPlayer(IsolationPlayer):
         legal_moves = game.get_legal_moves()
 
         if (current_depth <= 0) or (not legal_moves):
-            #print("Reached max depth or no legal moves from min.")
             return self.score(game, self)
         
-        #print("Now at depth ", current_depth)
         min_score = math.inf
         for move in legal_moves:
             result_game = game.forecast_move(move)
             current_score = self.max_value(result_game, current_depth - 1)
-            #print("Processing min move ", move, " with score", current_score)
             if current_score < min_score:
-                #print("Found min ")
                 min_score = current_score
 
         return min_score
@@ -215,17 +211,13 @@ class MinimaxPlayer(IsolationPlayer):
         legal_moves = game.get_legal_moves()
 
         if (current_depth <= 0) or (not legal_moves):
-            #print("Reached max depth or no legal moves from min.")
             return self.score(game, self)
         
-        #print("Now at depth ", current_depth)
         max_score = -math.inf
         for move in legal_moves:
             result_game = game.forecast_move(move)
             current_score = self.min_value(result_game, current_depth - 1)
-            #print("Processing max move ", move, " with score", current_score)
             if current_score > max_score:
-                #print("Found max ")
                 max_score = current_score
 
         return max_score
@@ -272,16 +264,13 @@ class MinimaxPlayer(IsolationPlayer):
             return (-1, -1)
         
         assert(depth >= 1)
-        #print("Currently at depth ", depth)
         
         max_move = (-1, -1)
         max_score = -math.inf  
         for move in legal_moves:
             result_game = game.forecast_move(move)
             current_score = self.min_value(result_game, depth - 1)
-            #print("Processing main loop ", move, " score", current_score)
             if current_score > max_score:
-                #print("Found max ")
                 max_move = move
                 max_score = current_score
         
@@ -337,14 +326,11 @@ class AlphaBetaPlayer(IsolationPlayer):
             # raised when the timer is about to expire.
             while iterative_depth <= max_depth:
                 best_move = self.alphabeta(game, iterative_depth, float("-inf"), float("inf"))
-                #print("Computed for depth ", iterative_depth, " Now increasing depth.")
                 iterative_depth += 1
 
         except SearchTimeout:
-            #print(best_move)
             return best_move
 
-        #print(best_move)
         return best_move
 
     def min_value(self, game, current_depth, alpha, beta):
@@ -354,24 +340,19 @@ class AlphaBetaPlayer(IsolationPlayer):
         legal_moves = game.get_legal_moves()
 
         if (current_depth <= 0) or (not legal_moves):
-            #print("Reached max depth or no legal moves from min.")
             return self.score(game, self)
 
         if game.utility(self) != 0.0:
             return game.utility(self)
         
-        #print("Now at depth ", current_depth)
         min_score = math.inf
         current_beta = beta
         for move in legal_moves:
             result_game = game.forecast_move(move)
             current_score = self.max_value(result_game, current_depth - 1, alpha, current_beta)
-            #print("Processing min move ", move, " with score", current_score, "alpha ", alpha, " beta ", current_beta)
             if current_score < min_score:
-                #print("Found min ")
                 min_score = current_score
             if min_score <= alpha:
-                #print("Now pruning with min score ", min_score, " and alpha ", alpha)
                 return min_score
             current_beta = min(current_beta, min_score)
 
@@ -384,24 +365,19 @@ class AlphaBetaPlayer(IsolationPlayer):
         legal_moves = game.get_legal_moves()
 
         if (current_depth <= 0) or (not legal_moves):
-            #print("Reached max depth or no legal moves from min.")
             return self.score(game, self)
 
         if game.utility(self) != 0.0:
             return game.utility(self)
         
-        #print("Now at depth ", current_depth)
         max_score = -math.inf
         current_alpha = alpha
         for move in legal_moves:
             result_game = game.forecast_move(move)
             current_score = self.min_value(result_game, current_depth - 1, current_alpha, beta)
-            #print("Processing max move ", move, " with score", current_score, "alpha ", current_alpha, " beta ", beta)
             if current_score > max_score:
-                #print("Found max ")
                 max_score = current_score
             if max_score >= beta:
-                #print("Now pruning with max score ", max_score, " and beta ", beta)
                 return max_score
             current_alpha = max(current_alpha, max_score)
 
@@ -460,7 +436,6 @@ class AlphaBetaPlayer(IsolationPlayer):
             return (-1, -1)
           
         assert(depth >= 1)
-        #print("Starting at depth ", depth)
        
         max_move = (-1, -1)
         max_score = -math.inf  
@@ -468,13 +443,10 @@ class AlphaBetaPlayer(IsolationPlayer):
         for move in legal_moves:
             result_game = game.forecast_move(move)
             current_score = self.min_value(result_game, depth - 1, current_alpha, beta)
-            #print("Processing main loop ", move, " with score", current_score, "alpha ", current_alpha, " beta ", beta)
             if current_score > max_score:
-                #print("Found max ")
                 max_move = move
                 max_score = current_score
             if max_score >= beta:
-                #print("Now pruning with max score ", max_score, " and beta ", beta)
                 break
             current_alpha = max(current_alpha, max_score)
         
