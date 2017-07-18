@@ -127,12 +127,19 @@ class IsolationPlayer:
         Time remaining (in milliseconds) when search is aborted. Should be a
         positive value large enough to allow the function to return before the
         timer expires.
-    """
+    """      
     def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
         self.search_depth = search_depth
         self.score = score_fn
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
+
+    def check_timing(self):
+        """ To avoid code duplication the time checking should be done in a consistent way
+        in the base class so that all derived algorithms can use the same functions.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
 
 
 class MinimaxPlayer(IsolationPlayer):
@@ -187,8 +194,7 @@ class MinimaxPlayer(IsolationPlayer):
         return best_move
    
     def min_value(self, game, current_depth):
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
+        self.check_timing()
 
         legal_moves = game.get_legal_moves()
 
@@ -205,8 +211,7 @@ class MinimaxPlayer(IsolationPlayer):
         return min_score
       
     def max_value(self, game, current_depth):
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
+        self.check_timing()
 
         legal_moves = game.get_legal_moves()
 
@@ -256,8 +261,7 @@ class MinimaxPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
+        self.check_timing()
         
         legal_moves = game.get_legal_moves()
         if not legal_moves:
@@ -334,8 +338,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         return best_move
 
     def min_value(self, game, current_depth, alpha, beta):
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
+        self.check_timing()
 
         legal_moves = game.get_legal_moves()
 
@@ -359,8 +362,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         return min_score
       
     def max_value(self, game, current_depth, alpha, beta):
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
+        self.check_timing()
 
         legal_moves = game.get_legal_moves()
 
@@ -428,8 +430,7 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
+        self.check_timing()
 
         legal_moves = game.get_legal_moves()
         if not legal_moves:

@@ -11,9 +11,7 @@ players, and the players play each match twice -- once as the first player and
 once as the second player.  Randomizing the openings and switching the player
 order corrects for imbalances due to both starting position and initiative.
 """
-import itertools
 import random
-import warnings
 
 from collections import namedtuple
 
