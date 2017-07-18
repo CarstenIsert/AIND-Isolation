@@ -266,10 +266,11 @@ class MinimaxPlayer(IsolationPlayer):
         legal_moves = game.get_legal_moves()
         if not legal_moves:
             return (-1, -1)
+          
+        if depth < 1:
+            return legal_moves[0]
         
-        assert(depth >= 1)
-        
-        max_move = (-1, -1)
+        max_move = legal_moves[0]
         max_score = -math.inf  
         for move in legal_moves:
             result_game = game.forecast_move(move)
@@ -436,9 +437,12 @@ class AlphaBetaPlayer(IsolationPlayer):
         if not legal_moves:
             return (-1, -1)
           
-        assert(depth >= 1)
+        if depth < 1:
+            return legal_moves[0]
        
-        max_move = (-1, -1)
+        # As we have legal moves and might timeout anytime, it is better to select
+        # an arbitrary first move than an invalid move.
+        max_move = legal_moves[0]
         max_score = -math.inf  
         current_alpha = alpha
         for move in legal_moves:
