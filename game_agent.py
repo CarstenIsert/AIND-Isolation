@@ -9,6 +9,17 @@ class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
 
+def get_opening_move(game):
+    if game.move_count == 0:
+        return (3, 3)
+    elif game.move_count == 1:
+        if game.move_is_legal((3, 3)):
+            return (3, 3)
+        else:
+            return (2, 2)
+    else:
+        return (-1, -1)
+      
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -320,13 +331,14 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # Initialize the best move so that this function returns something
-        # in case the search fails due to timeout
-        best_move = (-1, -1)
-        iterative_depth = 1
-        max_depth = 25
-        
+        best_move = get_opening_move(game)
+        if best_move != (-1,-1):
+            return best_move
+                  
         try:
+            iterative_depth = 1
+            max_depth = 12
+    
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
             while iterative_depth <= max_depth:

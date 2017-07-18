@@ -87,6 +87,17 @@ class IsolationTest(unittest.TestCase):
         self.game.apply_move((4, 2))
         self.assertEqual(self.player2.alphabeta(self.game, 1, float("-inf"), float("inf")), (2, 4))
 
+    def testOpeningMoves1(self):
+        self.assertEqual(game_agent.get_opening_move(self.game), (3, 3))
+        
+    def testOpeningMoves2(self):
+        self.game.apply_move((2, 3))
+        self.assertEqual(game_agent.get_opening_move(self.game), (3, 3))
+        
+    def testOpeningMoves2b(self):
+        self.game.apply_move((3, 3))
+        self.assertEqual(game_agent.get_opening_move(self.game), (2, 2))
+        
 
 if __name__ == '__main__':
     unittest.main()
