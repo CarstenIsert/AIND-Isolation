@@ -35,7 +35,7 @@ game_agent.py.
 Agent = namedtuple("Agent", ["player", "name"])
 
 
-def play_round(cpu_agent, test_agents, win_counts, num_matches):
+def play_round(opponent_agent, test_agents, win_counts, num_matches):
     """Compare the test agents to the cpu agent in "fair" matches.
 
     "Fair" matches use random starting locations and force the agents to
@@ -46,8 +46,8 @@ def play_round(cpu_agent, test_agents, win_counts, num_matches):
     forfeit_count = 0
     for _ in range(num_matches):
 
-        games = sum([[Board(cpu_agent.player, agent.player),
-                      Board(agent.player, cpu_agent.player)]
+        games = sum([[Board(opponent_agent.player, agent.player),
+                      Board(agent.player, opponent_agent.player)]
                     for agent in test_agents], [])
 
         # initialize all games with a random move and response
@@ -75,17 +75,17 @@ def update(total_wins, wins):
     return total_wins
 
 
-def play_matches(cpu_agents, test_agents, num_matches):
+def play_matches(opponent_agents, test_agents, num_matches):
     """Play matches between the test agent and each cpu_agent individually. """
     total_wins = {agent.player: 0 for agent in test_agents}
     total_timeouts = 0.
     total_forfeits = 0.
-    total_matches = 2 * num_matches * len(cpu_agents)
+    total_matches = 2 * num_matches * len(opponent_agents)
 
     print("\n{:^9}{:^13}".format("Match #", "Opponent") + ''.join(['{:^13}'.format(x[1].name) for x in enumerate(test_agents)]))
     print("{:^9}{:^13} ".format("", "") +  ' '.join(['{:^5}| {:^5}'.format("Won", "Lost") for x in enumerate(test_agents)]))
 
-    for idx, agent in enumerate(cpu_agents):
+    for idx, agent in enumerate(opponent_agents):
         wins = {key: 0 for (key, value) in test_agents}
         wins[agent.player] = 0
 
