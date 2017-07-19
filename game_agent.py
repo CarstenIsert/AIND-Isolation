@@ -9,18 +9,6 @@ class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
 
-def get_opening_move(game):
-    if game.move_count == 0:
-        return (3, 3)
-    elif game.move_count == 1:
-        if game.move_is_legal((3, 3)):
-            return (3, 3)
-        else:
-            return (2, 2)
-    else:
-        return (-1, -1)
-      
-
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
@@ -53,7 +41,7 @@ def custom_score(game, player):
 
     own_moves = len(game.get_legal_moves(player))
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
-    return float(own_moves - 2*opp_moves)
+    return float(own_moves - 1.375*opp_moves)
 
 def custom_score_2(game, player):
     """The basic evaluation function described in lecture that outputs a score
@@ -81,8 +69,9 @@ def custom_score_2(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    legal_moves = game.get_legal_moves(player)
-    return float(len(legal_moves))
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves / (2.5 * (opp_moves+1)))
 
 
 def custom_score_3(game, player):
@@ -114,7 +103,9 @@ def custom_score_3(game, player):
 
     own_moves = len(game.get_legal_moves(player))
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
-    return float(own_moves - opp_moves)
+    weight = -0.028 * game.move_count + 2.0
+    result = own_moves * weight - opp_moves * (1 - weight)
+    return result
 
 
 class IsolationPlayer:
@@ -139,7 +130,7 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """      
-    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
+    def __init__(self, search_depth=3, score_fn=custom_score, timeout=11.):
         self.search_depth = search_depth
         self.score = score_fn
         self.time_left = None
@@ -331,13 +322,13 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        best_move = get_opening_move(game)
+        best_move = (-1, -1)
         if best_move != (-1,-1):
             return best_move
                   
         try:
             iterative_depth = 1
-            max_depth = 12
+            max_depth = 25
     
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
