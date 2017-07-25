@@ -101,12 +101,21 @@ def custom_score_3(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    own_moves = len(game.get_legal_moves(player))
-    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
-    weight = -0.028 * game.move_count + 2.0
-    result = own_moves * weight - opp_moves * (1 - weight)
-    return result
+    moves_own = len(game.get_legal_moves(player))
+    moves_opp = len(game.get_legal_moves(game.get_opponent(player)))
+    board_size = game.height * game.width
+    moves_placed_ratio = game.move_count / board_size
+    if moves_placed_ratio > 0.33:
+        move_diff = (moves_own - moves_opp*2) 
+    else:
+        move_diff = (moves_own - moves_opp)
 
+    pos_own = game.get_player_location(player)
+    pos_opp = game.get_player_location(game.get_opponent(player))
+
+    m_distance = abs(pos_own[0] - pos_opp[0]) + abs(pos_own[1] - pos_opp[1])
+
+    return float(move_diff / m_distance)
 
 class IsolationPlayer:
     """Base class for minimax and alphabeta agents -- this class is never
