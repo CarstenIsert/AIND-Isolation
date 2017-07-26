@@ -5,7 +5,7 @@ champions) in a tournament.
          COMPLETING AND SUBMITTING A COMPETITION AGENT IS OPTIONAL
 """
 import random
-
+import math
 
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
@@ -33,6 +33,27 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    moves_own = len(game.get_legal_moves(player))
+    moves_opp = len(game.get_legal_moves(game.get_opponent(player)))
+    board_size = game.height * game.width
+    moves_placed_ratio = game.move_count / board_size
+    if moves_placed_ratio > 0.33:
+        move_diff = (moves_own - moves_opp*2) 
+    else:
+        move_diff = (moves_own - moves_opp)
+
+    pos_own = game.get_player_location(player)
+    pos_opp = game.get_player_location(game.get_opponent(player))
+
+    m_distance = abs(pos_own[0] - pos_opp[0]) + abs(pos_own[1] - pos_opp[1])
+
+    return float(move_diff / m_distance)
     raise NotImplementedError
 
 
@@ -66,6 +87,13 @@ class CustomPlayer:
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
 
+    def check_timing(self):
+        """ To avoid code duplication the time checking should be done in a consistent way
+        in the base class so that all derived algorithms can use the same functions.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
     def get_move(self, game, time_left):
         """Search for the best move from the available legal moves and return a
         result before the time limit expires.
@@ -93,5 +121,153 @@ class CustomPlayer:
             Board coordinates corresponding to a legal move; may return
             (-1, -1) if there are no available legal moves.
         """
-        # OPTIONAL: Finish this function!
-        raise NotImplementedError
+        
+        self.time_left = time_left
+
+        # TODO: If we are in the beginning stage of the game
+        # TODO: First check about symmetry
+        # TODO: Look up opening book for best move
+        if game.move_count == 0:
+            return (3,3)
+        
+        if game.move_count == 1:
+            if game.move_is_legal((3,3)):
+              return (3,3)
+            else:
+              return (2,2)
+            
+        
+        try:
+            iterative_depth = 1
+            max_depth = 25
+    
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            while iterative_depth <= max_depth:
+                best_move = self.alphabeta(game, iterative_depth, float("-inf"), float("inf"))
+                iterative_depth += 1
+
+        except SearchTimeout:
+            return best_move
+
+        return best_move
+
+    def min_value(self, game, current_depth, alpha, beta):
+        self.check_timing()
+
+        legal_moves = game.get_legal_moves()
+
+        if (current_depth <= 0) or (not legal_moves):
+            return self.score(game, self)
+
+        if game.utility(self) != 0.0:
+            return game.utility(self)
+        
+        min_score = math.inf
+        current_beta = beta
+        for move in legal_moves:
+            result_game = game.forecast_move(move)
+            current_score = self.max_value(result_game, current_depth - 1, alpha, current_beta)
+            if current_score < min_score:
+                min_score = current_score
+            if min_score <= alpha:
+                return min_score
+            current_beta = min(current_beta, min_score)
+
+        return min_score
+      
+    def max_value(self, game, current_depth, alpha, beta):
+        self.check_timing()
+
+        legal_moves = game.get_legal_moves()
+
+        if (current_depth <= 0) or (not legal_moves):
+            return self.score(game, self)
+
+        if game.utility(self) != 0.0:
+            return game.utility(self)
+        
+        max_score = -math.inf
+        current_alpha = alpha
+        for move in legal_moves:
+            result_game = game.forecast_move(move)
+            current_score = self.min_value(result_game, current_depth - 1, current_alpha, beta)
+            if current_score > max_score:
+                max_score = current_score
+            if max_score >= beta:
+                return max_score
+            current_alpha = max(current_alpha, max_score)
+
+        return max_score
+
+    def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
+        """Implement depth-limited minimax search with alpha-beta pruning as
+        described in the lectures.
+
+        This should be a modified version of ALPHA-BETA-SEARCH in the AIMA text
+        https://github.com/aimacode/aima-pseudocode/blob/master/md/Alpha-Beta-Search.md
+
+        **********************************************************************
+            You MAY add additional methods to this class, or define helper
+                 functions to implement the required functionality.
+        **********************************************************************
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        alpha : float
+            Alpha limits the lower bound of search on minimizing layers
+
+        beta : float
+            Beta limits the upper bound of search on maximizing layers
+
+        Returns
+        -------
+        (int, int)
+            The board coordinates of the best move found in the current search;
+            (-1, -1) if there are no legal moves
+
+        Notes
+        -----
+            (1) You MUST use the `self.score()` method for board evaluation
+                to pass the project tests; you cannot call any other evaluation
+                function directly.
+
+            (2) If you use any helper functions (e.g., as shown in the AIMA
+                pseudocode) then you must copy the timer check into the top of
+                each helper function or else your agent will timeout during
+                testing.
+        """
+        self.check_timing()
+
+        legal_moves = game.get_legal_moves()
+        if not legal_moves:
+            return (-1, -1)
+          
+        if depth < 1:
+            return legal_moves[0]
+       
+        # As we have legal moves and might timeout anytime, it is better to select
+        # an arbitrary first move than an invalid move.
+        max_move = legal_moves[0]
+        max_score = -math.inf  
+        current_alpha = alpha
+        for move in legal_moves:
+            result_game = game.forecast_move(move)
+            current_score = self.min_value(result_game, depth - 1, current_alpha, beta)
+            if current_score > max_score:
+                max_move = move
+                max_score = current_score
+            if max_score >= beta:
+                break
+            current_alpha = max(current_alpha, max_score)
+        
+        return max_move
+        
