@@ -111,18 +111,47 @@ class CompetitionTest(unittest.TestCase):
         self.game.apply_move((3,3))
         self.assertEqual(self.player1.get_move(self.game, lambda: 15.), (2,2))
     
-    def testVerticalSymmetry(self):
+    def testSymmetry(self):
         self.game.apply_move((1,1))
         self.game.apply_move((3,2))
-        game_mirror = isolation.Board(self.player1, self.player2)
-        game_mirror.apply_move((1,5))
-        game_mirror.apply_move((3,4))
-        game_horizontal_mirror = isolation.Board(self.player1, self.player2)
-        game_horizontal_mirror.apply_move((5,1))
-        game_horizontal_mirror.apply_move((3,2))
-        (vertical_mirror_result, horizontal_mirror_result) = self.game.symmetric_configurations()
-        self.assertEqual(vertical_mirror_result[0:49], game_mirror._board_state[0:49])
-        self.assertEqual(horizontal_mirror_result[0:49], game_horizontal_mirror._board_state[0:49])
+        
+        game_vertical = isolation.Board(self.player1, self.player2)
+        game_vertical.apply_move((1,5))
+        game_vertical.apply_move((3,4))
+        
+        game_horizontal = isolation.Board(self.player1, self.player2)
+        game_horizontal.apply_move((5,1))
+        game_horizontal.apply_move((3,2))
+        
+        game_rotation90 = isolation.Board(self.player1, self.player2)
+        game_rotation90.apply_move((1,5))
+        game_rotation90.apply_move((2,3))
+
+        game_rotation180 = isolation.Board(self.player1, self.player2)
+        game_rotation180.apply_move((5,5))
+        game_rotation180.apply_move((3,4))
+        
+        game_rotation270 = isolation.Board(self.player1, self.player2)
+        game_rotation270.apply_move((5,1))
+        game_rotation270.apply_move((4,3))
+
+        game_diag1 = isolation.Board(self.player1, self.player2)
+        game_diag1.apply_move((5,5))
+        game_diag1.apply_move((4,3))
+        
+        game_diag2 = isolation.Board(self.player1, self.player2)
+        game_diag2.apply_move((1,1))
+        game_diag2.apply_move((2,3))
+        
+        (vertical, horizontal, rotation90, rotation180, rotation270, diag1, diag2) = self.game.symmetric_configurations()
+
+        self.assertEqual(vertical[0:49], game_vertical._board_state[0:49])
+        self.assertEqual(horizontal[0:49], game_horizontal._board_state[0:49])
+        self.assertEqual(rotation90[0:49], game_rotation90._board_state[0:49])
+        self.assertEqual(rotation180[0:49], game_rotation180._board_state[0:49])
+        self.assertEqual(rotation270[0:49], game_rotation270._board_state[0:49])
+        self.assertEqual(diag1[0:49], game_diag1._board_state[0:49])
+        self.assertEqual(diag2[0:49], game_diag2._board_state[0:49])
             
 
 if __name__ == '__main__':
