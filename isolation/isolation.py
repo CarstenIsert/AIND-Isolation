@@ -10,6 +10,7 @@ be available to project reviewers.
 import random
 import timeit
 from copy import copy
+from scipy.signal.filter_design import _nearest_real_complex_idx
 
 TIME_LIMIT_MILLIS = 150
 
@@ -118,6 +119,27 @@ class Board(object):
         new_board.apply_move(move)
         return new_board
 
+
+    def _swap(self, board_array, idx, mirror_idx):
+        tmp = board_array[idx]
+        board_array[idx] = board_array[mirror_idx]
+        board_array[mirror_idx] = tmp
+
+    def symmetric_configurations(self):
+        vertical_board = self._board_state[0:49]
+        horizontal_board = self._board_state[0:49]
+        for j in range(self.width): 
+            for i in range(self.height):
+                idx = i + j * self.height
+                if self._board_state[idx] != Board.BLANK:
+                    vertical_mirror_idx = i + (self.width - j - 1) * self.height
+                    #print("Found something to mirror at idx: ", idx, " Mirror: ", vertical_mirror_idx)
+                    self._swap(vertical_board, idx, vertical_mirror_idx)
+                    horizontal_mirror_idx = (self.height - i - 1) + j * self.height
+                    self._swap(horizontal_board, idx, horizontal_mirror_idx)
+                    
+        return (vertical_board, horizontal_board)
+        
     def move_is_legal(self, move):
         """Test whether a move is legal in the current game state.
 
