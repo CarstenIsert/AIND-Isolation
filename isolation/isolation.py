@@ -10,10 +10,19 @@ be available to project reviewers.
 import random
 import timeit
 from copy import copy
-from scipy.signal.filter_design import _nearest_real_complex_idx
+from enum import Enum
 
 TIME_LIMIT_MILLIS = 150
 
+class Symmetries(Enum):
+    SAME = 0
+    VERTICAL = 1
+    HORIZONTAL = 2
+    ROTATE90 = 3
+    ROTATE180 = 4
+    ROTATE270 = 5
+    DIAG1 = 6
+    DIAG2 = 7
 
 class Board(object):
     """Implement a model for the game Isolation assuming each player moves like
@@ -54,7 +63,7 @@ class Board(object):
         self._board_state[-2] = Board.NOT_MOVED
 
     def hash(self):
-        return str(self._board_state).__hash__()
+        return str(self._board_state[0:49]).__hash__()
 
     @property
     def active_player(self):

@@ -7,8 +7,13 @@ own agent and example heuristic functions.
 """
 
 from random import randint
-import game_agent
+from random import choice
 
+import game_agent
+import timeit
+import json
+import isolation
+import os.path
 
 def null_score(game, player):
     """This heuristic presumes no knowledge for non-terminal states, and
@@ -260,20 +265,72 @@ if __name__ == "__main__":
     player1 = game_agent.AlphaBetaPlayer()
     player2 = GreedyPlayer()
     game = Board(player1, player2)
+    time_millis = lambda: 1000 * timeit.default_timer()
 
+    # TODO: Move code to CustomPlayer
+    # TODO: Gernate large version of opening book
+    # TODO: Make opening book storage, loading etc. more efficient
+    if os.path.exists('data.json'):
+        with open('data.json', 'rb') as data_fp:
+            opening_book = json.load(data_fp)
+            data_fp.close()
+    else:
+        opening_book = {}
+    
+    # Initialize the board with two random moves for each player.
+#    for _ in range(2):
+#        move = choice(game.get_legal_moves())
+#        game.apply_move(move)
+    game.apply_move((5, 1))
+    game.apply_move((3, 4))
+    
+    for i in range(10):
+        move_start = time_millis()
+        time_left = lambda : 2000 - (time_millis() - move_start)
+
+        sym = [0,1,2,3,4,5,6,7]
+        sym[0] = game._board_state[0:49]
+        print("Current board: ", str(sym[0]))
+        (sym[1], sym[2], sym[3], sym[4], sym[5], sym[6], sym[7]) = game.symmetric_configurations()
+    
+        # Check if symmetric configs are in the opening book
+        move = (-1,-1)
+        for config in sym:
+            hash_config = str(str(config).__hash__())
+            print("Hash: ", hash_config)
+            if hash_config in opening_book:
+                (move_list, sym) = opening_book[hash_config]
+                move = tuple(move_list)
+                print("Found move in opening book", move)
+        
+        if move == (-1, -1):
+            move = player1.get_move(game, time_left)
+            print("Adding this move to the opening book: ", sym[0], ":", move)
+            # TODO: Need to store the type of symmetry to be able to mirror the move back!
+            opening_book[game.hash()] = (move, 0)
+        
+        move_end = time_left()
+
+        game.apply_move(move)
+
+    print("Writing new version of opening book.")
+    with open('data.json', 'w') as data_fp:
+        json.dump(opening_book, data_fp)
+        data_fp.close()
+    
     # place player 1 on the board at row 2, column 3, then place player 2 on
     # the board at row 0, column 5; display the resulting board state.  Note
     # that the .apply_move() method changes the calling object in-place.
-    game.apply_move((2, 3))
-    game.apply_move((1, 5))
-    print(game.to_string())
+    #game.apply_move((2, 3))
+    #game.apply_move((1, 5))
+    #print(game.to_string())
 
     # players take turns moving on the board, so player1 should be next to move
-    assert(player1 == game.active_player)
+    #assert(player1 == game.active_player)
 
     # play the remainder of the game automatically -- outcome can be "illegal
     # move", "timeout", or "forfeit"
-    winner, history, outcome = game.play()
-    print("\nWinner: {}\nOutcome: {}".format(winner, outcome))
-    print(game.to_string())
-    print("Move history:\n{!s}".format(history))
+    #winner, history, outcome = game.play()
+    #print("\nWinner: {}\nOutcome: {}".format(winner, outcome))
+    #print(game.to_string())
+    #print("Move history:\n{!s}".format(history))
