@@ -10,19 +10,9 @@ be available to project reviewers.
 import random
 import timeit
 from copy import copy
-from enum import Enum
 
 TIME_LIMIT_MILLIS = 150
 
-class Symmetries(Enum):
-    SAME = 0
-    VERTICAL = 1
-    HORIZONTAL = 2
-    ROTATE90 = 3
-    ROTATE180 = 4
-    ROTATE270 = 5
-    DIAG1 = 6
-    DIAG2 = 7
 
 class Board(object):
     """Implement a model for the game Isolation assuming each player moves like
@@ -391,3 +381,7 @@ class Board(object):
             move_history.append(list(curr_move))
 
             self.apply_move(curr_move)
+            
+
+
+

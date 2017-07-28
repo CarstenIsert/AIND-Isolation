@@ -110,6 +110,10 @@ class CompetitionTest(unittest.TestCase):
     def testSecondMoveCenterOccupied(self):
         self.game.apply_move((3,3))
         self.assertEqual(self.player1.get_move(self.game, lambda: 15.), (2,2))
+
+    def testOccupyFirstMove(self):
+        self.player1.occupy_start_position(self.game)
+        self.assertEqual((3,3), self.player1.best_move)
     
     def testSymmetry(self):
         self.game.apply_move((1,1))
@@ -153,6 +157,24 @@ class CompetitionTest(unittest.TestCase):
         self.assertEqual(diag1[0:49], game_diag1._board_state[0:49])
         self.assertEqual(diag2[0:49], game_diag2._board_state[0:49])
             
+    def testOpeningBook(self):
+        self.player1.load_opening_book('test.json')
+        (move_list, sym) = self.player1.opening_book['-2930664380439188361']
+        move = tuple(move_list)
+        self.assertEqual(move, (3,0))
+        self.assertEqual(competition_agent.Symmetries(sym), competition_agent.Symmetries.SAME)
+        
+    def testInitCustomPlayerWithBook(self):
+        new_player = competition_agent.CustomPlayer('test.json')
+        (move_list, sym) = new_player.opening_book['-2930664380439188361']
+        move = tuple(move_list)
+        self.assertEqual(move, (3,0))
+        self.assertEqual(competition_agent.Symmetries(sym), competition_agent.Symmetries.SAME)
+        
+    def testInitCustomPlayerWithoutBook(self):
+        new_player = competition_agent.CustomPlayer()
+        self.assertEqual(new_player.opening_book, {})
+        
 
 if __name__ == '__main__':
     unittest.main()

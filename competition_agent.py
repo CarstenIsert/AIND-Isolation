@@ -6,11 +6,23 @@ champions) in a tournament.
 """
 import random
 import math
+import json
+import os.path
+from enum import Enum
 
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
 
+class Symmetries(Enum):
+    SAME = 0
+    VERTICAL = 1
+    HORIZONTAL = 2
+    ROTATE90 = 3
+    ROTATE180 = 4
+    ROTATE270 = 5
+    DIAG1 = 6
+    DIAG2 = 7
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -86,7 +98,25 @@ class CustomPlayer:
         self.score = custom_score
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
+        self.load_opening_book(data)
 
+    def load_opening_book(self, filename):
+        # TODO: Make opening book storage, loading etc. more efficient. This should include using ints instead of strings
+        # and avoid most of the conversions. However: First rule is: Don't optimize! Only if it is really required.
+        if (filename != None) and os.path.exists(filename):
+            with open(filename, 'rb') as data_fp:
+                self.opening_book = json.load(data_fp)
+                data_fp.close()
+        else:
+            self.opening_book = {}
+
+    def save_opening_book(self, filename):
+        print("Writing new version of opening book.")
+        with open(filename, 'w') as data_fp:
+            json.dump(self.opening_book, data_fp)
+            data_fp.close()
+
+            
     def check_timing(self):
         """ To avoid code duplication the time checking should be done in a consistent way
         in the base class so that all derived algorithms can use the same functions.
@@ -94,6 +124,24 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
+    def occupy_start_position(self, game):
+        move = (-1, -1)
+        if game.move_count == 0:
+            move = (3, 3)
+        if game.move_count == 1:
+            if game.move_is_legal((3, 3)):
+                move = (3, 3)
+            else:
+                move = (2, 2)
+        return move
+
+    def rotate_move(self, move_list, symmetry):
+        # TODO: Document that this method encapsulates the representation of the JSON file
+        # TODO: Need to rotate the move based on symmetry information
+        if Symmetries(symmetry) != Symmetries.SAME:
+            raise NotImplementedError
+        return tuple(move_list)
+    
     def get_move(self, game, time_left):
         """Search for the best move from the available legal moves and return a
         result before the time limit expires.
@@ -123,19 +171,27 @@ class CustomPlayer:
         """
         
         self.time_left = time_left
-
-        # TODO: If we are in the beginning stage of the game
-        # TODO: First check about symmetry
-        # TODO: Look up opening book for best move
-        if game.move_count == 0:
-            return (3,3)
+        self.best_move = (-1, -1)
+        self.occupy_start_position(game)
         
-        if game.move_count == 1:
-            if game.move_is_legal((3,3)):
-              return (3,3)
-            else:
-              return (2,2)
+        if self.best_move != (-1, -1):
+            return self.best_move
+          
+        symmetric_boards = [None] * 8
+        symmetric_boards[0] = game._board_state[0:49]
+        (symmetric_boards[1], symmetric_boards[2], symmetric_boards[3], symmetric_boards[4], symmetric_boards[5], symmetric_boards[6], symmetric_boards[7]) = game.symmetric_configurations()
             
+        # Check if symmetric configs are in the opening book
+        for config in symmetric_boards:
+            hash_config = str(str(config).__hash__())
+            print("Hash: ", hash_config)
+            if hash_config in self.opening_book:
+                (move_list, move_symmetry) = self.opening_book[hash_config]
+                self.best_move = self.rotate_move(move_list, move_symmetry)
+                print("Found move in opening book", self.best_move)
+        
+        if self.best_move != (-1, -1):
+            return self.best_move
         
         try:
             iterative_depth = 1
@@ -144,13 +200,18 @@ class CustomPlayer:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
             while iterative_depth <= max_depth:
-                best_move = self.alphabeta(game, iterative_depth, float("-inf"), float("inf"))
+                self.best_move = self.alphabeta(game, iterative_depth, float("-inf"), float("inf"))
                 iterative_depth += 1
 
         except SearchTimeout:
-            return best_move
+            print("Adding this move to the opening book: ", symmetric_boards[0], ":", self.best_move)
+            # TODO: Need to store the type of symmetry to be able to mirror the move back!
+            # TODO: Also save the symmetric configs with the same move!
+            # TODO: This can only be called AFTER the move has been applied on the board!!!
+            # self.opening_book[game.hash()] = (self.best_move, Symmetries.SAME)
+            return self.best_move
 
-        return best_move
+        return self.best_move
 
     def min_value(self, game, current_depth, alpha, beta):
         self.check_timing()
