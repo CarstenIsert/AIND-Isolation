@@ -125,39 +125,36 @@ class Board(object):
         board_array[mirror_idx] = tmp
 
     def symmetric_configurations(self):
-        vertical_board = self._board_state[0:49]
-        horizontal_board = self._board_state[0:49]
-        rotation90_board = self._board_state[0:49]
-        rotation180_board = self._board_state[0:49]
-        rotation270_board = self._board_state[0:49]
-        diag1_board = self._board_state[0:49]
-        diag2_board = self._board_state[0:49]
+        symmetric_boards = [None] * 8
+        for i in range(0,8):
+            symmetric_boards[i] = self._board_state[0:49]
+
         for j in range(self.width): 
             for i in range(self.height):
                 idx = i + j * self.height
                 if self._board_state[idx] != Board.BLANK:
                     vertical_mirror_idx = i + (self.width - j - 1) * self.height
-                    self._swap(vertical_board, idx, vertical_mirror_idx)
+                    self._swap(symmetric_boards[1], idx, vertical_mirror_idx)
 
                     horizontal_mirror_idx = (self.height - i - 1) + j * self.height
-                    self._swap(horizontal_board, idx, horizontal_mirror_idx)
+                    self._swap(symmetric_boards[2], idx, horizontal_mirror_idx)
                     
                     rotation90_idx = j + (self.width - i - 1) * self.height
-                    self._swap(rotation90_board, idx, rotation90_idx)
+                    self._swap(symmetric_boards[3], idx, rotation90_idx)
 
                     rotation180_idx = (self.height - i - 1) + (self.width - j - 1) * self.height
-                    self._swap(rotation180_board, idx, rotation180_idx)
+                    self._swap(symmetric_boards[4], idx, rotation180_idx)
                     
                     rotation270_idx = (self.height - j - 1) + i * self.height
-                    self._swap(rotation270_board, idx, rotation270_idx)
+                    self._swap(symmetric_boards[5], idx, rotation270_idx)
 
                     diag1_idx = (self.height - j - 1) + (self.width - i -1) * self.height
-                    self._swap(diag1_board, idx, diag1_idx)
+                    self._swap(symmetric_boards[6], idx, diag1_idx)
                     
                     diag2_idx = j + i * self.height
-                    self._swap(diag2_board, idx, diag2_idx)
+                    self._swap(symmetric_boards[7], idx, diag2_idx)
                     
-        return (vertical_board, horizontal_board, rotation90_board, rotation180_board, rotation270_board, diag1_board, diag2_board)
+        return symmetric_boards
         
     def move_is_legal(self, move):
         """Test whether a move is legal in the current game state.

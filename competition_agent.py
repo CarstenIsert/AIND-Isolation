@@ -66,7 +66,6 @@ def custom_score(game, player):
     m_distance = abs(pos_own[0] - pos_opp[0]) + abs(pos_own[1] - pos_opp[1])
 
     return float(move_diff / m_distance)
-    raise NotImplementedError
 
 
 class CustomPlayer:
@@ -116,6 +115,17 @@ class CustomPlayer:
             json.dump(self.opening_book, data_fp)
             data_fp.close()
 
+    def update_opening_book(self, game):
+        print("Adding moves to the opening book: ", self.best_move)
+        # TODO: Need to store the type of symmetry to be able to mirror the move back!
+        # TODO: Also save the symmetric configs with the same move!
+        # TODO: This can only be called AFTER the move has been applied on the board!!!
+        # self.opening_book[game.hash()] = (self.best_move, Symmetries.SAME)
+        symmetric_boards = game.symmetric_configurations()
+        for sym_config in Symmetries:
+            hash_config = str(str(symmetric_boards[sym_config]).__hash__())
+            self.opening_book[hash_config] = (self.best_move, sym_config)
+        print(self.opening_book)
             
     def check_timing(self):
         """ To avoid code duplication the time checking should be done in a consistent way
@@ -125,15 +135,14 @@ class CustomPlayer:
             raise SearchTimeout()
 
     def occupy_start_position(self, game):
-        move = (-1, -1)
+        # TODO: This method has "side effects"... so the questions is which is more important IOSP or SRP...
         if game.move_count == 0:
-            move = (3, 3)
+            self.best_move = (3, 3)
         if game.move_count == 1:
             if game.move_is_legal((3, 3)):
-                move = (3, 3)
+                self.best_move = (3, 3)
             else:
-                move = (2, 2)
-        return move
+                self.best_move = (2, 2)
 
     def rotate_move(self, move_list, symmetry):
         # TODO: Document that this method encapsulates the representation of the JSON file
@@ -177,9 +186,7 @@ class CustomPlayer:
         if self.best_move != (-1, -1):
             return self.best_move
           
-        symmetric_boards = [None] * 8
-        symmetric_boards[0] = game._board_state[0:49]
-        (symmetric_boards[1], symmetric_boards[2], symmetric_boards[3], symmetric_boards[4], symmetric_boards[5], symmetric_boards[6], symmetric_boards[7]) = game.symmetric_configurations()
+        symmetric_boards  = game.symmetric_configurations()
             
         # Check if symmetric configs are in the opening book
         for config in symmetric_boards:
@@ -204,11 +211,6 @@ class CustomPlayer:
                 iterative_depth += 1
 
         except SearchTimeout:
-            print("Adding this move to the opening book: ", symmetric_boards[0], ":", self.best_move)
-            # TODO: Need to store the type of symmetry to be able to mirror the move back!
-            # TODO: Also save the symmetric configs with the same move!
-            # TODO: This can only be called AFTER the move has been applied on the board!!!
-            # self.opening_book[game.hash()] = (self.best_move, Symmetries.SAME)
             return self.best_move
 
         return self.best_move

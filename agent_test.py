@@ -147,7 +147,7 @@ class CompetitionTest(unittest.TestCase):
         game_diag2.apply_move((1,1))
         game_diag2.apply_move((2,3))
         
-        (vertical, horizontal, rotation90, rotation180, rotation270, diag1, diag2) = self.game.symmetric_configurations()
+        [_, vertical, horizontal, rotation90, rotation180, rotation270, diag1, diag2] = self.game.symmetric_configurations()
 
         self.assertEqual(vertical[0:49], game_vertical._board_state[0:49])
         self.assertEqual(horizontal[0:49], game_horizontal._board_state[0:49])

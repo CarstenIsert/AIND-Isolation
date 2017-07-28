@@ -270,6 +270,8 @@ if __name__ == "__main__":
     # Initialize the board with two random moves for each player.
 #    for _ in range(2):
 #        move = choice(game.get_legal_moves())
+# TODO: The first move should be restricted to the area 0-3, 0-3 to reduce the number of
+# configs as those are symmetric to the other ones.
 #        game.apply_move(move)
     game.apply_move((5, 1))
     game.apply_move((3, 4))
@@ -280,7 +282,7 @@ if __name__ == "__main__":
         move = player1.get_move(game, time_left)        
         move_end = time_left()
         game.apply_move(move)
-        # TODO: Must be called after the move has been applied! player1.update_opening_book(game)
+        # TODO: First tests need to be OK! player1.update_opening_book(game)
 
     player1.save_opening_book('data.json')    
     # place player 1 on the board at row 2, column 3, then place player 2 on
