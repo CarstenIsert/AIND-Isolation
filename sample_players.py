@@ -276,13 +276,13 @@ if __name__ == "__main__":
     game.apply_move((5, 1))
     game.apply_move((3, 4))
     
-    for i in range(10):
+    for i in range(8):
         move_start = time_millis()
         time_left = lambda : 2000 - (time_millis() - move_start)
         move = player1.get_move(game, time_left)        
         move_end = time_left()
         game.apply_move(move)
-        # TODO: First tests need to be OK! player1.update_opening_book(game)
+        player1.update_opening_book(game)
 
     player1.save_opening_book('data.json')    
     # place player 1 on the board at row 2, column 3, then place player 2 on

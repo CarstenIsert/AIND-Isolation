@@ -175,6 +175,45 @@ class CompetitionTest(unittest.TestCase):
         new_player = competition_agent.CustomPlayer()
         self.assertEqual(new_player.opening_book, {})
         
+    def testUpdateOpeningBook4Symmetries(self):
+        self.game.apply_move((1,1))
+        self.player1.best_move = (1,1)
+        self.player1.update_opening_book(self.game)
+        print(self.player1.opening_book)
+        self.assertEqual(self.player1.opening_book['-8974553412868527889'], ((1,1), competition_agent.Symmetries.SAME.value))
+        self.assertEqual(len(self.player1.opening_book), 4)
+    
+    def testUpdateOpeningBook8Symmetries(self):
+        self.game.apply_move((1,1))
+        self.game.apply_move((3,2))
+        self.player1.best_move = (3,2)
+        self.player1.update_opening_book(self.game)
+        print(self.player1.opening_book)
+        self.assertEqual(self.player1.opening_book['5105712017171821632'], ((3,2), competition_agent.Symmetries.SAME.value))
+        self.assertEqual(len(self.player1.opening_book), 8)
+
+    def testRotateMove1(self):
+        self.assertEqual(self.player1.backrotate_move([2,2], competition_agent.Symmetries.VERTICAL), (2, 4))
+           
+    def testRotateMove2(self):
+        self.assertEqual(self.player1.backrotate_move([2,2], competition_agent.Symmetries.HORIZONTAL), (4, 2))
+           
+    def testRotateMove3(self):
+        self.assertEqual(self.player1.backrotate_move([2,2], competition_agent.Symmetries.ROTATE90), (4, 2))
+           
+    def testRotateMove4(self):
+        self.assertEqual(self.player1.backrotate_move([2,2], competition_agent.Symmetries.ROTATE180), (4, 4))
+           
+    def testRotateMove5(self):
+        self.assertEqual(self.player1.backrotate_move([2,2], competition_agent.Symmetries.ROTATE270), (2, 4))
+           
+    def testRotateMove6(self):
+        self.assertEqual(self.player1.backrotate_move([2,2], competition_agent.Symmetries.DIAG1), (4, 4))
+           
+    def testRotateMove7(self):
+        self.assertEqual(self.player1.backrotate_move([2,2], competition_agent.Symmetries.DIAG2), (2, 2))
+           
+
 
 if __name__ == '__main__':
     unittest.main()

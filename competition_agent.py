@@ -92,13 +92,17 @@ class CustomPlayer:
         platform compatible, so a limit of 1ms (vs 10ms for the other classes)
         is generally sufficient.
     """
-
+    MAX_DEPTH_OPENING_BOOK = 5
+    BOARD_WIDTH = 7
+    BOARD_HEIGHT = 7
+    
     def __init__(self, data=None, timeout=1.):
         self.score = custom_score
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
         self.load_opening_book(data)
 
+    # TODO: Opening book should go into a seperta class!!!
     def load_opening_book(self, filename):
         # TODO: Make opening book storage, loading etc. more efficient. This should include using ints instead of strings
         # and avoid most of the conversions. However: First rule is: Don't optimize! Only if it is really required.
@@ -116,16 +120,20 @@ class CustomPlayer:
             data_fp.close()
 
     def update_opening_book(self, game):
+        if game.move_count > self.MAX_DEPTH_OPENING_BOOK:
+            print("Maximum depth reached, no update of opening book")
+            return
+          
         print("Adding moves to the opening book: ", self.best_move)
-        # TODO: Need to store the type of symmetry to be able to mirror the move back!
-        # TODO: Also save the symmetric configs with the same move!
-        # TODO: This can only be called AFTER the move has been applied on the board!!!
-        # self.opening_book[game.hash()] = (self.best_move, Symmetries.SAME)
         symmetric_boards = game.symmetric_configurations()
+        print(symmetric_boards)
         for sym_config in Symmetries:
-            hash_config = str(str(symmetric_boards[sym_config]).__hash__())
-            self.opening_book[hash_config] = (self.best_move, sym_config)
-        print(self.opening_book)
+            print("Current sym config", sym_config)
+            hash_config = str(str(symmetric_boards[sym_config.value]).__hash__())
+            print("Current hash: ", hash_config)
+            if hash_config not in self.opening_book:
+                self.opening_book[hash_config] = (self.best_move, sym_config.value)
+                print("Updated opening book:", self.opening_book[hash_config])
             
     def check_timing(self):
         """ To avoid code duplication the time checking should be done in a consistent way
@@ -144,12 +152,29 @@ class CustomPlayer:
             else:
                 self.best_move = (2, 2)
 
-    def rotate_move(self, move_list, symmetry):
+    def backrotate_move(self, move_list, symmetry):
         # TODO: Document that this method encapsulates the representation of the JSON file
-        # TODO: Need to rotate the move based on symmetry information
-        if Symmetries(symmetry) != Symmetries.SAME:
-            raise NotImplementedError
-        return tuple(move_list)
+        # TODO: Check if this can be put together with the symmetry generation into one class.
+        if symmetry == Symmetries.SAME:
+            return tuple(move_list)
+
+        (i, j) = move_list
+        if symmetry == Symmetries.VERTICAL:
+            return (i, self.BOARD_WIDTH - j - 1)
+        if symmetry == Symmetries.HORIZONTAL:
+            return (self.BOARD_HEIGHT - i - 1, j)
+        if symmetry == Symmetries.ROTATE90:
+            return (self.BOARD_HEIGHT - j - 1, i)
+        if symmetry == Symmetries.ROTATE180:
+            return (self.BOARD_HEIGHT - i - 1, self.BOARD_WIDTH - j - 1)
+        if symmetry == Symmetries.ROTATE270:
+            return (j, self.BOARD_WIDTH - i - 1)
+        if symmetry == Symmetries.DIAG1:
+            return (self.BOARD_HEIGHT - j - 1, self.BOARD_WIDTH - i - 1)
+        if symmetry == Symmetries.DIAG2:
+            return (j, i)
+
+        
     
     def get_move(self, game, time_left):
         """Search for the best move from the available legal moves and return a
@@ -194,7 +219,8 @@ class CustomPlayer:
             print("Hash: ", hash_config)
             if hash_config in self.opening_book:
                 (move_list, move_symmetry) = self.opening_book[hash_config]
-                self.best_move = self.rotate_move(move_list, move_symmetry)
+                print(move_list, move_symmetry)
+                self.best_move = self.backrotate_move(move_list, Symmetries(move_symmetry))
                 print("Found move in opening book", self.best_move)
         
         if self.best_move != (-1, -1):
